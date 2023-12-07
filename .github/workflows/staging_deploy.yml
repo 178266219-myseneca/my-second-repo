@@ -24,9 +24,9 @@ jobs:
     environment: staging
     env:
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      AWS_ACCESS_KEY_ID:  ${{ secrets.AWS_ACCESS_KEY_ID }}
-      AWS_SECRET_ACCESS_KEY:  ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-      AWS_SESSION_TOKEN:  ${{ secrets.AWS_SESSION_TOKEN }}
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      AWS_SESSION_TOKEN: ${{ secrets.AWS_SESSION_TOKEN }}
 
     steps:
       - name: Checkout
@@ -44,18 +44,15 @@ jobs:
         continue-on-error: true
         working-directory: ./staging
 
-
       - name: Terraform Init
         id: init
         run: terraform init
         working-directory: ./staging
-
            
       - name: Terraform Validate
         id: validate
         run: terraform validate -no-color
         working-directory: ./staging
-
     
       - name: Terraform Plan
         id: plan
@@ -67,13 +64,12 @@ jobs:
         run: echo "${{ steps.validate.outputs.stdout }}"
       
       - name: Terraform Show
-  id: show
-  run: |
-    terraform show -no-color tf.plan > plan.txt
-    cat plan.txt
-  working-directory: ./staging # Use your environment folder
+        id: show
+        run: |
+          terraform show -no-color tf.plan > plan.txt
+          cat plan.txt
+        working-directory: ./staging # Use your environment folder
 
-          
       - uses: actions/github-script@v6
         if: github.event_name == 'pull_request'
         with:
@@ -82,7 +78,6 @@ jobs:
             const fs = require("fs");
             const plan = fs.readFileSync("/tmp/plan.txt", "utf8");
             const maxGitHubBodyCharacters = 65536;
-
             function chunkSubstr(str, size) {
               const numChunks = Math.ceil(str.length / size)
               const chunks = new Array(numChunks)
@@ -91,7 +86,6 @@ jobs:
               }
               return chunks
             }
-
             // Split the Terraform plan into chunks if it's too big and can't fit into the GitHub Action
             var plans = chunkSubstr(plan, maxGitHubBodyCharacters); 
             for (let i = 0; i < plans.length; i++) {
@@ -105,7 +99,6 @@ jobs:
               \`\`\`
               </details>
               *Pusher: @${{ github.actor }}, Action: \`${{ github.event_name }}\`, Working Directory: \`${{ inputs.working-directory }}\`, Workflow: \`${{ github.workflow }}\`*`;   
-
               await github.rest.issues.createComment({
                 issue_number: context.issue.number,
                 owner: context.repo.owner,
@@ -113,10 +106,8 @@ jobs:
                 body: output
               })
             }
-
       - name: Terraform Apply
         if: github.ref == 'refs/heads/prod' && github.event_name == 'push'
         run: terraform apply -input=false tf.plan
         working-directory: ./staging # Use your environment folder
         shell: bash
-        
