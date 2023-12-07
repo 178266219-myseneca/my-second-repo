@@ -67,9 +67,12 @@ jobs:
         run: echo "${{ steps.validate.outputs.stdout }}"
       
       - name: Terraform Show
-        id: show
-        run: terraform show -no-color tf.plan 2>&1 > /tmp/plan.txt
-        working-directory: ./staging # Use your environment folder
+  id: show
+  run: |
+    terraform show -no-color tf.plan > plan.txt
+    cat plan.txt
+  working-directory: ./staging # Use your environment folder
+
           
       - uses: actions/github-script@v6
         if: github.event_name == 'pull_request'
